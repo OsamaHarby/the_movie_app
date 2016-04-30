@@ -122,9 +122,12 @@ public class MovieFragment extends Fragment implements AdapterView.OnItemClickLi
     }
 
     public void sendOnStart() {
+        Log.d("hiiiiiiii", "1");
         if (isNetworkConnected()) {
+            Log.d("hiiiiiiii", "2");
             DetailsFragment detailsFragment = (DetailsFragment) ((MovieActivity) getActivity()).manager.findFragmentById(R.id.details_fragment);
-            if (detailsFragment != null) {
+            if (detailsFragment != null && movies != null) {
+                Log.d("hiiiiiiii", "3");
                 sendMovieDetails.sendData(movies.get(0).id);
             }
         }
