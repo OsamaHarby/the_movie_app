@@ -1,8 +1,12 @@
 package com.example.engosamaharby.themovieapp;
 
+
 import android.content.Context;
 import android.os.AsyncTask;
+import android.support.v4.app.Fragment;
 import android.util.Log;
+import android.view.View;
+import android.widget.GridView;
 import android.widget.Toast;
 
 import org.json.JSONArray;
@@ -26,8 +30,10 @@ public class DownLoadTask extends AsyncTask<String, Void, List<MovieDetails> > {
 
     List<MovieDetails> movies = new ArrayList<>();
     Context context;
-    public DownLoadTask(Context context){
+    Fragment fragment;
+    public DownLoadTask(Context context, Fragment fragment){
         this.context = context;
+        this.fragment = fragment;
     }
     @Override
     protected List<MovieDetails> doInBackground(String... params) {
@@ -102,4 +108,12 @@ public class DownLoadTask extends AsyncTask<String, Void, List<MovieDetails> > {
         return null;
     }
 
+    @Override
+    protected void onPostExecute(List<MovieDetails> movieDetailses) {
+        super.onPostExecute(movieDetailses);
+        GridAdapter gridAdapter = new GridAdapter(context, movies);
+        ((MovieFragment)fragment).gridView.setAdapter(gridAdapter);
+        ((MovieFragment)fragment).movies = movies;
+
+    }
 }

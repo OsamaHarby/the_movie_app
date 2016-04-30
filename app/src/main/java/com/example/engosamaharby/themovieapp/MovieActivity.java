@@ -15,6 +15,8 @@ public class MovieActivity extends AppCompatActivity implements MovieFragment.Se
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_movie);
         manager = getSupportFragmentManager();
+        MovieFragment movieFragment = (MovieFragment) manager.findFragmentById(R.id.fragmentMovie);
+        movieFragment.setSendMovieDetails(this);
     }
 
     @Override

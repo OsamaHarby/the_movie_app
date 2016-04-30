@@ -2,10 +2,13 @@ package com.example.engosamaharby.themovieapp;
 
 
 import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.net.ConnectivityManagerCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -15,6 +18,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -34,13 +38,6 @@ public class MovieFragment extends Fragment implements AdapterView.OnItemClickLi
     SendMovieDetails sendMovieDetails;
     List<MovieDetails> movies;
     GridView gridView;
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        sendMovieDetails = (SendMovieDetails) getActivity();
-
-    }
 
 
     @Override
@@ -68,18 +65,14 @@ public class MovieFragment extends Fragment implements AdapterView.OnItemClickLi
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        if (isNetworkConnected()) {
 
-        DownLoadTask task = new DownLoadTask(getActivity());
-        try {
-            movies = task.execute("popular").get();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
+            DownLoadTask task = new DownLoadTask(getActivity(), this);
+
+            task.execute("popular");
+        } else {
+            Toast.makeText(getActivity(), "no connection", Toast.LENGTH_SHORT).show();
         }
-        Log.d("hiiiii", movies + "");
-        GridAdapter gridAdapter = new GridAdapter(getActivity(), movies);
-        gridView.setAdapter(gridAdapter);
 
     }
 
@@ -93,48 +86,47 @@ public class MovieFragment extends Fragment implements AdapterView.OnItemClickLi
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.pop) {
 
-            DownLoadTask task = new DownLoadTask(getActivity());
-            try {
-                movies = task.execute("popular").get();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (ExecutionException e) {
-                e.printStackTrace();
+            if (isNetworkConnected()) {
+                DownLoadTask task = new DownLoadTask(getActivity(), this);
+                task.execute("popular");
+                sendOnStart();
+            } else {
+                Toast.makeText(getActivity(), "no connection", Toast.LENGTH_SHORT).show();
             }
-            GridAdapter gridAdapter = new GridAdapter(getActivity(), movies);
-            gridView.setAdapter(gridAdapter);
+
         }
 
         if (item.getItemId() == R.id.topRated) {
-
-            DownLoadTask task = new DownLoadTask(getActivity());
-            try {
-                movies = task.execute("top_rated").get();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (ExecutionException e) {
-                e.printStackTrace();
+            if (isNetworkConnected()) {
+                DownLoadTask task = new DownLoadTask(getActivity(), this);
+                task.execute("top_rated");
+                sendOnStart();
+            } else {
+                Toast.makeText(getActivity(), "no connection", Toast.LENGTH_SHORT).show();
             }
-            sendOnStart();
-            GridAdapter gridAdapter = new GridAdapter(getActivity(), movies);
-            gridView.setAdapter(gridAdapter);
         }
         if (item.getItemId() == R.id.favorite) {
-            DataBaseAdapter dbAdabter = new DataBaseAdapter(getActivity());
-            movies = dbAdabter.getFavourites();
-            if (movies != null && movies.size() > 0) {
-                sendOnStart();
+            if (isNetworkConnected()) {
+                DataBaseAdapter dbAdabter = new DataBaseAdapter(getActivity());
+                movies = dbAdabter.getFavourites();
+                if (movies != null && movies.size() > 0) {
+                    sendOnStart();
+                }
+                GridAdapter gridAdapter = new GridAdapter(getActivity(), movies);
+                gridView.setAdapter(gridAdapter);
+            } else {
+                Toast.makeText(getActivity(), "no connection", Toast.LENGTH_SHORT).show();
             }
-            GridAdapter gridAdapter = new GridAdapter(getActivity(), movies);
-            gridView.setAdapter(gridAdapter);
         }
         return true;
     }
 
     public void sendOnStart() {
-        DetailsFragment detailsFragment = (DetailsFragment) ((MovieActivity) getActivity()).manager.findFragmentById(R.id.details_fragment);
-        if (detailsFragment != null) {
-            sendMovieDetails.sendData(movies.get(0).id);
+        if (isNetworkConnected()) {
+            DetailsFragment detailsFragment = (DetailsFragment) ((MovieActivity) getActivity()).manager.findFragmentById(R.id.details_fragment);
+            if (detailsFragment != null) {
+                sendMovieDetails.sendData(movies.get(0).id);
+            }
         }
     }
 
@@ -145,7 +137,18 @@ public class MovieFragment extends Fragment implements AdapterView.OnItemClickLi
 
     }
 
+    public void setSendMovieDetails(SendMovieDetails sendMovieDetails) {
+        this.sendMovieDetails = sendMovieDetails;
+    }
+
     public interface SendMovieDetails {
         public void sendData(int id);
+    }
+
+    public boolean isNetworkConnected() {
+        ConnectivityManager connectivityManagerCompat = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        NetworkInfo networkInfo = connectivityManagerCompat.getActiveNetworkInfo();
+        return (networkInfo != null && networkInfo.isConnectedOrConnecting());
     }
 }
