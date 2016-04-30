@@ -4,7 +4,6 @@ package com.example.engosamaharby.themovieapp;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.View;
 import android.widget.GridView;
 import android.widget.Toast;
@@ -41,7 +40,6 @@ public class DownLoadTask extends AsyncTask<String, Void, List<MovieDetails>> {
     protected List<MovieDetails> doInBackground(String... params) {
         String json = getJSON("https://api.themoviedb.org/3/movie/" + params[0] + "?api_key=25685b17a9e1b83f14f8051033a21a43");
         movies = getPoster(json);
-        Log.i("nnnjj", movies.get(0).id + "");
         return movies;
     }
 
